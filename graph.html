@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html><head><title>Thermostat history</title>
+<link rel="stylesheet" type="text/css" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/hot-sneaks/jquery-ui.min.css"/>
+</head>
+<body>
+<div id="statGraph" style="width:90%; height:600px"></div>
+<div id="controls">
+</div>
+<script src="//code.jquery.com/jquery-2.1.0.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+<script src="js/jquery.flot.mod.min.js"></script> 
+<script src="js/jquery.flot.time.js"></script>
+<script src="js/moment.min.js"></script>
+<script>
+
+var flotOptions = {
+    xaxis:
+    {
+        mode: 'time',
+        timeformat: '%a %H:%M',
+    },
+    yaxis:
+    {
+        min: 12.5,
+        max: 26
+    },
+    series:
+    {
+        lines: { show: true }
+    },
+    grid: {hoverable:true}
+};
+
+var xaxis_array = [], allData = [];
+
+$(function() {
+    // load data from node
+    $("<div id='tooltip'></div>").css({
+        position: "absolute",
+        display: "none",
+        border: "1px solid #fdd",
+        padding: "2px",
+        "background-color": "#fee",
+        opacity: 0.80
+    }).appendTo("body");
+    
+    $.getJSON("/tstat/history", {}, function(data, stat, jqXHR)
+    {
+        // data.flotData
+        // data.xaxis
+        //xaxis_array = data.xaxis;
+        allData = data.flotData;
+        
+        if (data.overrideTimes.length > 0 && data.overrideTimes.length % 2 === 0)
+        {
+            var markingObjs = [], i;
+            
+            while (data.overrideTimes.length > 0)
+            {
+                markingObjs.push({'xaxis': {'from': data.overrideTimes.shift(), 'to': data.overrideTimes.shift()}, color:'rgba(174,196,233,0.5)'});
+            }
+            flotOptions.grid.markings = markingObjs;
+        }
+        else
+        {
+            delete flotOptions.grid.markings;
+        }
+        
+        $.plot($('#statGraph'), data.flotData, flotOptions);
+    });
+    
+    $("#statGraph").bind("plothover", function (event, pos, item) 
+    {
+        if (item) 
+        {
+            var time = moment(item.datapoint[0]).calendar(),
+                temp = item.datapoint[1].toFixed(2);
+                
+                $("#tooltip").html(item.series.label + " at " + time + ": " + temp)
+                    .css({top: item.pageY+5, left: item.pageX+5})
+                    .fadeIn(200);
+        } else {
+            $("#tooltip").hide();
+        }
+        
+    });
+});
+</script>
+</body>
+</html>

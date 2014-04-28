@@ -1,0 +1,20 @@
+{
+  "name": "3m50Mon",
+  "version": "0.0.1",
+  "author": "victor@chuma.org",
+  "description": "monitor a 3M-50 thermostat",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/chuma/3m50-mon"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "sqlite3": "~2.2.0",
+    "moment": "~2.5.1",
+    "ini": "~1.1.0",
+    "rss": "~0.3.2"
+  },
+  "scripts": {
+    "start": "node tstats.js"
+  }
+}

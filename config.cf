@@ -1,0 +1,16 @@
+[thermostat]
+collect = true
+host = 192.168.0.158
+minTempC = 15.5
+maxTempC = 27
+
+[rss]
+ttl = 20
+title = Home thermostat status
+feed_url = http://misato.chuma.org/home/tstat.xml
+site_url = http://misato.chuma.org/home/
+author = Victor Rehorst <victor@chuma.org>
+
+
+[server]
+port = 8765
