@@ -1,9 +1,16 @@
+# thermostat specific settings
 [thermostat]
+# do data collection?
 collect = true
+
+# where's the stat?
 host = 192.168.0.158
+
+# minimum/maximum temperatures for out-of-range detection
 minTempC = 15.5
 maxTempC = 27
 
+# RSS feed settings
 [rss]
 ttl = 20
 title = Home thermostat status
@@ -11,6 +18,11 @@ feed_url = http://misato.chuma.org/home/tstat.xml
 site_url = http://misato.chuma.org/home/
 author = Victor Rehorst <victor@chuma.org>
 
-
+# Server settings: port to listen to
 [server]
 port = 8765
+
+# WUnderground for outside conditions
+[wunderground]
+#apikey = your_key
+location = H0H0H0

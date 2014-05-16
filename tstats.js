@@ -18,6 +18,33 @@ var FtoC = function(v)
 var minTempC = parseFloat(settings.thermostat.minTempC) || 15.5;
 var maxTempC = parseFloat(settings.thermostat.maxTempC) || 27;
 
+var outside_temp = null;
+
+if (settings.wunderground.apikey)
+{
+    var wunderground = require("wundernode");
+    var wunderclient = new wunderground(settings.wunderground.apikey, false, 10, 'minute');
+    
+    var weatherPoller = function() {
+        wunderclient.conditions(settings.wunderground.location, function(err, obj)
+        {
+            if (err)
+            {
+                util.log('Wunderground error: ' + err);
+                return;
+            }
+
+            var actual_object = JSON.parse(obj);
+            outside_temp = actual_object.current_observation.temp_c;
+//            util.log(util.inspect(obj));
+            // obj.current_observation.temp_c
+        });        
+    };
+    
+    weatherPoller();
+    var weatherPollID = setInterval(weatherPoller, 60000*60);
+}
+
 var tstatHistory = (function() {
     var db = new sqlite3.Database('tstatlog.sqlite');
     
@@ -55,9 +82,10 @@ var tstatHistory = (function() {
             
             var retJSON = {
                 flotData: [
-                    { 'label': 'Temperature', 'color': 'black', data: []},
+                    { 'label': 'Indoor temp', 'color': 'black', data: []},
                     { 'label': 'Heat target', 'color': 'red', data: []},
                     { 'label': 'Cool target', 'color': 'blue', data: []},
+                    { 'label': 'Outdoor temp', 'color': 'green', data: []},
                     { 'color': 'rgba(174,196,233, 0.5)', 'label': 'Override', data: []}
                     ],
                 overrideTimes: []
@@ -82,6 +110,10 @@ var tstatHistory = (function() {
                 if ('t_cool' in r)
                 {
                     retJSON.flotData[2].data.push([jsTS, FtoC(r.t_cool)]);
+                }
+                if ('t_outside' in r)
+                {
+                    retJSON.flotData[3].data.push([jsTS, r.t_outside]);
                 }
                 if (r.override !== override_prev)
                 {
@@ -132,7 +164,7 @@ var rssFeed = (function() {
             descr.push('ABNORMAL TEMP: ' + tempNow + "C less than " + minTempC + "C");
         }
         
-        var statTextData = statDataToText(statData)
+        var statTextData = statDataToText(statData);
         
         descr.push(statTextData);
         
@@ -191,8 +223,7 @@ var tStatPoller = function() {
         });
         res.on('end', function() {
             var statData = JSON.parse(statResult);
-        
-            //reporter.senseReport(statData);
+            statData.t_outside = outside_temp;
             myrss.updateRSS(statData);
             history.log(statData);
         });
@@ -236,4 +267,4 @@ var httpHandler = function(req, res)
     res.end();
 }
 
-var httpServer = http.createServer(httpHandler).listen(server.port || 8765);
+var httpServer = http.createServer(httpHandler).listen(settings.server.port || 8765);
