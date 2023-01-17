@@ -1,3 +1,7 @@
+# Archived and not maintained
+
+I wrote this many many years ago, the code is crufty. Since I no longer own this hardware, this code is unmaintained.
+
 # 3m50-mon
 ## Monitoring 3M-50 WiFi thermostats
 
